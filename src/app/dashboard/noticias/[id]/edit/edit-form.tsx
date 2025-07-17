@@ -24,7 +24,7 @@ export default function NovaNoticiaPage() {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        setAutorEmail(user.email); // <-- ALTERAÇÃO AQUI: Define o email do autor
+        setAutorEmail(user.email || null); // <-- ALTERAÇÃO AQUI: Define o email do autor
         console.log('Email do usuário logado:', user.email);
       } else {
         console.warn('Nenhum usuário logado encontrado. Redirecionando para login.');

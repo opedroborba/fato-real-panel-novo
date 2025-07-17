@@ -100,7 +100,7 @@ export default function GerenciarCadernosPage() {
         <Link href="/dashboard/cadernos/novo" className="px-4 py-2 bg-fato-yellow text-gray-900 rounded-md hover:bg-fato-yellow-dark transition duration-200 shadow-md">
           Adicionar Novo Caderno
         </Link>
-      </div>
+      </div>ç
 
       {cadernos.length === 0 ? (
         <p className="text-gray-600 text-center">Nenhum caderno encontrado. Adicione um novo!</p>
