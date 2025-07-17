@@ -1,32 +1,63 @@
-// middleware.ts
-import { createMiddlewareClient } from '@supabase/ssr';
+// src/lib/middleware.ts
+import { createServerClient } from '@supabase/ssr'; // <-- Importação comum para SSR/Middleware
 import { NextResponse } from 'next/server';
 
 import type { NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
-  const supabase = createMiddlewareClient({ request, response });
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          request.cookies.set({
+            name,
+            value,
+            ...options,
+          });
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          });
+        },
+        remove(name: string, options: any) {
+          request.cookies.set({
+            name,
+            value: '',
+            ...options,
+          });
+          response.cookies.set({
+            name,
+            value: '',
+            ...options,
+          });
+        },
+      },
+    }
+  );
 
-  // Refresh the user's session and get their auth token
-  // Isso é importante para manter a sessão sincronizada e acessível
-  // tanto no lado do servidor quanto no cliente.
+  // Refresh session if expired - required for Server Components
   await supabase.auth.getSession();
 
   return response;
 }
 
-// Define quais rotas o middleware deve ser executado
-export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - Todas as rotas da API que você não quer que sejam protegidas (se houver)
-     * - Rotas de autenticação (login, signup, etc.)
-     */
-    '/((?!_next/static|_next/image|favicon.ico|api/auth).*)',
-  ],
-};
+// Opcional: Se você tiver uma configuração de matcher no middleware.ts
+// export const config = {
+//   matcher: [
+//     /*
+//      * Match all request paths except for the ones starting with:
+//      * - _next/static (static files)
+//      * - _next/image (image optimization files)
+//      * - favicon.ico (favicon file)
+//      * Feel free to modify this pattern to include more paths.
+//      */
+//     '/((?!_next/static|_next/image|favicon.ico).*)',
+//   ],
+// };
