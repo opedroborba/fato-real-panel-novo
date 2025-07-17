@@ -1,10 +1,16 @@
-// src/app/dashboard/noticias/nova/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
+
+// Define a interface para a estrutura de uma categoria
+// Ajuste os tipos 'string' ou 'number' para 'id' conforme o tipo real no seu banco de dados Supabase
+interface Categoria {
+  id: string; // Ou number, se o ID da categoria for um número
+  categoria: string;
+}
 
 export default function NovaNoticiaPage() {
   const [titulo, setTitulo] = useState('');
@@ -14,9 +20,10 @@ export default function NovaNoticiaPage() {
   const [slugInput, setSlugInput] = useState('');
   const [publicidade, setPublicidade] = useState('');
   const [categoriaId, setCategoriaId] = useState('');
-  const [autorEmail, setAutorEmail] = useState<string | null>(null); // <-- ALTERAÇÃO AQUI: autorEmail agora
+  const [autorEmail, setAutorEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [categorias, setCategorias] = useState([]);
+  // CORREÇÃO AQUI: Especifica o tipo da array para 'categorias'
+  const [categorias, setCategorias] = useState<Categoria[]>([]); 
   const router = useRouter();
 
   useEffect(() => {
@@ -24,7 +31,7 @@ export default function NovaNoticiaPage() {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        setAutorEmail(user.email || null); // <-- ALTERAÇÃO AQUI: Define o email do autor
+        setAutorEmail(user.email || null);
         console.log('Email do usuário logado:', user.email);
       } else {
         console.warn('Nenhum usuário logado encontrado. Redirecionando para login.');
@@ -39,7 +46,8 @@ export default function NovaNoticiaPage() {
         console.error('Erro ao buscar categorias:', categoriasError.message);
         alert('Erro ao carregar categorias.');
       } else {
-        setCategorias(categoriasData || []);
+        // Garante que categoriasData é do tipo Categoria[] antes de atribuir
+        setCategorias((categoriasData as Categoria[]) || []); 
       }
       setLoading(false);
     }
@@ -58,7 +66,7 @@ export default function NovaNoticiaPage() {
     e.preventDefault();
     setLoading(true);
 
-    if (!autorEmail) { // <-- ALTERAÇÃO AQUI: Verifica autorEmail
+    if (!autorEmail) {
       alert('Erro: Email do autor não disponível. Por favor, faça login novamente.');
       setLoading(false);
       return;
@@ -114,7 +122,7 @@ export default function NovaNoticiaPage() {
           conteudo: conteudo,
           capa: capaUrl,
           categoria: categoriaId,
-          autor: autorEmail, // <-- ALTERAÇÃO AQUI: Insere o email do autor
+          autor: autorEmail,
           slug: slugsArray,
           publicidade: publicidade,
           publico: true,
@@ -133,7 +141,7 @@ export default function NovaNoticiaPage() {
     setLoading(false);
   }
 
-  if (loading && !autorEmail) { // <-- ALTERAÇÃO AQUI: Verifica autorEmail
+  if (loading && !autorEmail) {
     return (
         <div className="min-h-screen flex items-center justify-center">
             <p>Carregando dados do usuário e categorias...</p>
@@ -191,7 +199,7 @@ export default function NovaNoticiaPage() {
             required
           >
             <option value="">Selecione uma categoria</option>
-            {categorias.map((cat: any) => (
+            {categorias.map((cat: any) => ( // Mantido 'any' aqui por enquanto para compatibilidade
               <option key={cat.id} value={cat.id}>{cat.categoria}</option>
             ))}
           </select>
